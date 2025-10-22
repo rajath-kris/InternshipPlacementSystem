@@ -1,53 +1,74 @@
 package main.control;
 
+import main.entity.CareerCenterStaff;
 import main.entity.CompanyRepresentative;
+import main.entity.Student;
 import main.entity.User;
 import main.entity.enums.AccountStatus;
 
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class UserManager {
-    private final List<User> users;
+    private final List<User> users = new ArrayList<>();
 
-    public UserManager() {
-        this.users = new ArrayList<>();
-    }
-
-    // Add a new user (Student, CompanyRep, or Staff)
+    // --- ADD USER ---
     public void addUser(User user) {
         users.add(user);
     }
 
-    // Remove a user by ID
+    // --- REMOVE USER ---
     public void removeUser(String id) {
         users.removeIf(u -> u.getUserId().equalsIgnoreCase(id));
     }
 
-    // Find a user by ID
+    // --- FIND USER BY ID ---
     public User findUserById(String id) {
         for (User u : users) {
-            if (u.getUserId().equalsIgnoreCase(id)) {
-                return u;
-            }
+            if (u.getUserId().equalsIgnoreCase(id)) return u;
         }
         return null;
     }
 
-    // Return all users (useful for listing)
-    public List<User> getAllUsers() {
-        return users;
+    // --- FIND USER BY EMAIL ---
+    public User findUserByEmail(String email) {
+        for (User u : users) {
+            if (u.getEmail().equalsIgnoreCase(email)) return u;
+        }
+        return null;
     }
 
-    // Check if user already exists
+    // --- CHANGE PASSWORD ---
+    public boolean changeUserPassword(String userId, String oldPw, String newPw) {
+        User u = findUserById(userId);
+        if (u == null) {
+            System.out.println("User not found.");
+            return false;
+        }
+        if (u.changePassword(oldPw, newPw)) {
+            System.out.println("Password updated successfully.");
+            return true;
+        } else {
+            System.out.println("Incorrect old password.");
+            return false;
+        }
+    }
+
+    // --- CHECK USER EXISTENCE ---
     public boolean userExists(String id) {
         return findUserById(id) != null;
     }
 
-    // Print all users (for testing/debug)
+    // --- LIST USERS (for testing/debug) ---
     public void displayAllUsers() {
         for (User u : users) {
             System.out.printf("%s - %s - %s%n", u.getUserId(), u.getName(), u.getRole());
         }
+    }
+
+    // --- GET ALL USERS ---
+    public List<User> getAllUsers() {
+        return users;
     }
 }

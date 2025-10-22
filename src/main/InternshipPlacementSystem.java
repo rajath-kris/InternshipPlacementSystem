@@ -18,7 +18,7 @@ public class InternshipPlacementSystem {
                 "data/sample_staff_list.csv"
         );
 
-        MainMenu mainMenu = new MainMenu(auth);
+        MainMenu mainMenu = new MainMenu(auth,userManager);
         mainMenu.start();
     }
 

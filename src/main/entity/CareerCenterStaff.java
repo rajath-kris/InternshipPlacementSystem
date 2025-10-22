@@ -1,5 +1,8 @@
 package main.entity;
 
+import main.control.UserManager;
+import main.data.DataLoader;
+
 /**
  * Represents a Career Center Staff user
  *
@@ -30,4 +33,16 @@ public class CareerCenterStaff extends User {
         return String.format("Staff: %s [ID: %s, Department: %s]",
                 getName(), getUserId(), staffDepartment);
     }
+
+    @Override
+    public void register(UserManager userManager) {
+        if (userManager.userExists(this.getUserId()) || userManager.userExists(this.getEmail())) {
+            System.out.println("Staff member with this ID or email already exists.");
+            return;
+        }
+        userManager.addUser(this);
+        DataLoader.appendNewUser(this);
+        System.out.println("Career Center Staff registered successfully. Default password: 'password'");
+    }
+
 }

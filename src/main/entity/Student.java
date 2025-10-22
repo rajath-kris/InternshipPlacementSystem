@@ -1,5 +1,8 @@
 package main.entity;
 
+import main.control.UserManager;
+import main.data.DataLoader;
+
 /**
  * Represents a Student user
  *
@@ -42,5 +45,17 @@ public class Student extends User {
         return String.format("Student: %s [ID: %s, Year: %d, Major: %s]",
                 getName(), getUserId(), yearOfStudy, major);
     }
+
+    @Override
+    public void register(UserManager userManager) {
+        if (userManager.userExists(this.getUserId()) || userManager.userExists(this.getEmail())) {
+            System.out.println("Student with this ID or email already exists.");
+            return;
+        }
+        userManager.addUser(this);
+        DataLoader.appendNewUser(this);
+        System.out.println("Student registered successfully. Default password: 'password'");
+    }
+
 
 }

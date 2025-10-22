@@ -1,5 +1,7 @@
 package main.entity;
 
+import main.control.UserManager;
+
 public abstract class User {
     private String name;
     private String userId;
@@ -33,4 +35,14 @@ public abstract class User {
         return String.format("%s [ID: %s, Email: %s, Role: %s]",
                 name, userId, email, getRole());
     }
+
+    public boolean changePassword(String oldPw, String newPw) {
+        if (this.password.equals(oldPw)) {
+            this.password = newPw;
+            return true;
+        }
+        return false;
+    }
+
+    public abstract void register(UserManager userManager);
 }

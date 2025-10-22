@@ -1,7 +1,6 @@
 package main.boundary;
 
 import main.control.*;
-import main.data.DataLoader;
 import main.entity.*;
 import main.entity.enums.AccountStatus;
 import main.util.InputHandler;
@@ -60,7 +59,7 @@ public class MainMenu {
 
         boolean loggedIn = authController.login(id, password);
         if (!loggedIn) {
-            System.out.println("❌ Invalid credentials.\n");
+            System.out.println("Invalid credentials.\n");
             return;
         }
 
@@ -69,29 +68,25 @@ public class MainMenu {
         // Restrict login for unapproved reps
         if (user instanceof CompanyRepresentative rep &&
                 rep.getAccountStatus() != AccountStatus.APPROVED) {
-            System.out.println("\n⚠️ Your account is not approved yet. Current status: " + rep.getAccountStatus());
+            System.out.println("\nYour account is not approved yet. Current status: " + rep.getAccountStatus());
             authController.logout();
             return;
         }
-
-        System.out.println("\n✅ Login successful! Welcome, " + user.getName() + " (" + user.getRole() + ")");
 
         // Redirect to respective menu
         redirectToRoleMenu(user);
     }
 
     private void redirectToRoleMenu(User user) {
-        String role = user.getRole().toLowerCase();
-
-        if (role.contains("student")) {
+        if (user instanceof Student s) {
             System.out.println("🎓 Redirecting to Student Menu...");
-            // new StudentUI((Student) user).start();
-        } else if (role.contains("company")) {
+            new StudentMenu(authController, new InternshipManager(), userManager, s).start();
+        } else if (user instanceof CompanyRepresentative rep) {
             System.out.println("🏢 Redirecting to Company Representative Menu...");
-            // new CompanyRepUI((CompanyRepresentative) user).start();
-        } else if (role.contains("career")) {
+            new CompanyRepMenu(authController, new InternshipManager(), userManager, rep).start();
+        } else if (user instanceof CareerCenterStaff staff) {
             System.out.println("👩‍💼 Redirecting to Staff Menu...");
-            // new StaffUI((CareerCenterStaff) user).start();
+            new StaffMenu(authController, new InternshipManager(), userManager, staff).start();
         }
 
         authController.logout();
@@ -105,56 +100,43 @@ public class MainMenu {
         System.out.println("3. Career Center Staff");
 
         int choice = inputHandler.readInt("Enter choice: ", 1, 3);
+        User newUser = null;
 
         switch (choice) {
-            case 1 -> registerStudent();
-            case 2 -> registerCompanyRep();
-            case 3 -> registerStaff();
+            case 1 -> {
+                System.out.println("\n--- STUDENT REGISTRATION ---");
+                String name = inputHandler.readString("Full Name: ");
+                String id = inputHandler.readString("Student ID (e.g., U1234567A): ");
+                String email = inputHandler.readEmail("Email: ");
+                int year = inputHandler.readInt("Year of Study (1-4): ", 1, 4);
+                String major = inputHandler.readString("Major: ");
+                newUser = new Student(name, id, email, "password", year, major);
+            }
+            case 2 -> {
+                System.out.println("\n--- COMPANY REPRESENTATIVE REGISTRATION ---");
+                String name = inputHandler.readString("Full Name: ");
+                String email = inputHandler.readEmail("Company Email: ");
+                String company = inputHandler.readString("Company Name: ");
+                String dept = inputHandler.readString("Department: ");
+                String position = inputHandler.readString("Position: ");
+                // generate ID automatically (can also use email if required)
+                String repId = "REP" + System.currentTimeMillis();
+                newUser = new CompanyRepresentative(name, repId, email, "password",
+                        company, dept, position, AccountStatus.PENDING);
+            }
+            case 3 -> {
+                System.out.println("\n--- STAFF REGISTRATION ---");
+                String name = inputHandler.readString("Full Name: ");
+                String id = inputHandler.readString("Staff ID: ");
+                String email = inputHandler.readEmail("Staff Email: ");
+                String dept = inputHandler.readString("Department: ");
+                newUser = new CareerCenterStaff(name, id, email, "password", dept);
+            }
         }
 
-        DataLoader.saveAllUsers(userManager);
-    }
-
-    private void registerStudent() {
-        System.out.println("\n--- STUDENT REGISTRATION ---");
-        String name = inputHandler.readString("Full Name: ");
-        String id = inputHandler.readString("Student ID (e.g., U1234567A): ");
-        String email = inputHandler.readEmail("Email: ");
-        int year = inputHandler.readInt("Year of Study (1-4): ", 1, 4);
-        String major = inputHandler.readString("Major: ");
-
-        Student student = new Student(name, id, email, "password", year, major);
-        userManager.addUser(student);
-        System.out.println("\n✅ Student registration successful! Default password: 'password'\n");
-    }
-
-    private void registerCompanyRep() {
-        System.out.println("\n--- COMPANY REPRESENTATIVE REGISTRATION ---");
-        String name = inputHandler.readString("Full Name: ");
-        String email = inputHandler.readEmail("Company Email: ");
-        String company = inputHandler.readString("Company Name: ");
-        String dept = inputHandler.readString("Department: ");
-        String position = inputHandler.readString("Position: ");
-
-        boolean success = userManager.registerCompanyRepresentative(name, email, company, dept, position);
-
-        if (success) {
-            System.out.println("\n✅ Registration successful! Status: PENDING approval by staff.");
-            System.out.println("Default password: 'password'\n");
-        } else {
-            System.out.println("\n❌ Registration failed! Email may already exist.\n");
+        if (newUser != null) {
+            newUser.register(userManager);
+            System.out.println("Registration complete.\n");
         }
-    }
-
-    private void registerStaff() {
-        System.out.println("\n--- CAREER CENTER STAFF REGISTRATION ---");
-        String name = inputHandler.readString("Full Name: ");
-        String id = inputHandler.readString("Staff ID: ");
-        String email = inputHandler.readEmail("Staff Email (@ntu.edu.sg): ");
-        String department = inputHandler.readString("Department: ");
-
-        CareerCenterStaff staff = new CareerCenterStaff(name, id, email, "password", department);
-        userManager.addUser(staff);
-        System.out.println("\n✅ Staff registration successful! Default password: 'password'\n");
     }
 }
