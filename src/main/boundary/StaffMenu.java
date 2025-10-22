@@ -1,4 +1,4 @@
 package main.boundary;
 
-public class StaffUI {
+public class StaffMenu {
 }

@@ -1,4 +1,4 @@
-package main.entity;
+package main.entity.enums;
 
 /**
  * Enum for Company Representative account status

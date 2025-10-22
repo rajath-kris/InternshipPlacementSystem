@@ -1,5 +1,7 @@
 package main.entity;
 
+import main.entity.enums.AccountStatus;
+
 /**
  * Represents a Company Representative user
  *
@@ -16,7 +18,7 @@ public class CompanyRepresentative extends User {
     private AccountStatus accountStatus; // e.g., "Pending", "Approved", "Rejected"
 
     public CompanyRepresentative(String name, String id, String email, String password,
-                                 String companyName, String department, String position, String accountStatus) {
+                                 String companyName, String department, String position, AccountStatus accountStatus) {
         super(name, id, email, password);
         this.companyName = companyName;
         this.department = department;

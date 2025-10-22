@@ -1,6 +1,9 @@
 package main.control;
 
+import main.entity.CompanyRepresentative;
 import main.entity.User;
+import main.entity.enums.AccountStatus;
+
 import java.util.ArrayList;
 import java.util.List;
 
