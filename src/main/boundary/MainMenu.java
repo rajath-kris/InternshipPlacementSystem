@@ -6,17 +6,18 @@ import main.entity.enums.AccountStatus;
 import main.util.InputHandler;
 
 /**
- * Minimal Main Menu - handles Login and Registration
- * Redirects to role-specific UIs (to be implemented)
+ * MainMenu - Entry point for login, registration, and redirection.
  */
 public class MainMenu {
     private final Authenticator authController;
     private final UserManager userManager;
+    private final InternshipManager internshipManager;
     private final InputHandler inputHandler;
 
-    public MainMenu(Authenticator authController, UserManager userManager) {
+    public MainMenu(Authenticator authController, UserManager userManager, InternshipManager internshipManager) {
         this.authController = authController;
         this.userManager = userManager;
+        this.internshipManager = internshipManager;
         this.inputHandler = new InputHandler();
     }
 
@@ -44,8 +45,6 @@ public class MainMenu {
         inputHandler.closeScanner();
     }
 
-    // ---------- MENU LOGIC ----------
-
     private void printBanner() {
         System.out.println("\n===============================================");
         System.out.println("     NTU INTERNSHIP PLACEMENT SYSTEM");
@@ -59,7 +58,7 @@ public class MainMenu {
 
         boolean loggedIn = authController.login(id, password);
         if (!loggedIn) {
-            System.out.println("Invalid credentials.\n");
+            System.out.println("Login Failed.\n");
             return;
         }
 
@@ -73,20 +72,21 @@ public class MainMenu {
             return;
         }
 
-        // Redirect to respective menu
         redirectToRoleMenu(user);
     }
 
     private void redirectToRoleMenu(User user) {
         if (user instanceof Student s) {
             System.out.println("🎓 Redirecting to Student Menu...");
-            new StudentMenu(authController, new InternshipManager(), userManager, s).start();
+            new StudentMenu(authController, internshipManager, userManager, s).start();
+
         } else if (user instanceof CompanyRepresentative rep) {
             System.out.println("🏢 Redirecting to Company Representative Menu...");
-            new CompanyRepMenu(authController, new InternshipManager(), userManager, rep).start();
+            new CompanyRepMenu(authController, internshipManager, userManager, rep).start();
+
         } else if (user instanceof CareerCenterStaff staff) {
             System.out.println("👩‍💼 Redirecting to Staff Menu...");
-            new StaffMenu(authController, new InternshipManager(), userManager, staff).start();
+            new StaffMenu(authController, internshipManager, userManager, staff).start();
         }
 
         authController.logout();
@@ -119,7 +119,6 @@ public class MainMenu {
                 String company = inputHandler.readString("Company Name: ");
                 String dept = inputHandler.readString("Department: ");
                 String position = inputHandler.readString("Position: ");
-                // generate ID automatically (can also use email if required)
                 String repId = "REP" + System.currentTimeMillis();
                 newUser = new CompanyRepresentative(name, repId, email, "password",
                         company, dept, position, AccountStatus.PENDING);

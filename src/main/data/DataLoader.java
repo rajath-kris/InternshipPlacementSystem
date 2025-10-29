@@ -45,7 +45,12 @@ public class DataLoader {
                 String email = r[5].trim();
                 String statusStr = r[6].trim().toUpperCase();
 
-                AccountStatus status = AccountStatus.valueOf(statusStr);
+                AccountStatus status;
+                try {
+                    status = AccountStatus.valueOf(statusStr);
+                } catch (IllegalArgumentException e) {
+                    status = AccountStatus.PENDING;
+                }
 
                 userManager.addUser(new CompanyRepresentative(
                         name, id, email, "password", companyName, department, position, status
@@ -76,6 +81,30 @@ public class DataLoader {
         System.out.println("✅ All user data loaded successfully (default password = 'password').");
     }
 
+    // ---------- LOAD INTERNSHIPS ----------
+    public static InternshipRepository loadInternships(String internshipFile) {
+        System.out.println("Loading internships from: " + internshipFile);
+        return new InternshipRepository(internshipFile);
+    }
+
+    // ---------- APPEND NEW INTERNSHIP ----------
+    public static void appendNewInternship(Internship internship) {
+        // CSV order: id,title,description,level,major,openDate,closeDate,status,company,repId,slots,visible
+        FileHandler.appendToCSV("data/internships.csv", new String[]{
+                internship.getInternshipId(),
+                internship.getTitle(),
+                internship.getDescription(),
+                internship.getLevel().name(),
+                internship.getPreferredMajor(),
+                internship.getOpeningDate(),
+                internship.getClosingDate(),
+                internship.getStatus().name(),
+                internship.getCompanyName(),
+                internship.getRepresentativeId(),
+                String.valueOf(internship.getNumSlots()),
+                String.valueOf(internship.isVisible())
+        });
+    }
     // ---------- APPEND NEW USER ----------
     public static void appendNewUser(User user) {
         if (user instanceof Student s) {
@@ -161,6 +190,12 @@ public class DataLoader {
 
         FileHandler.writeCSV(filePath, rows, header);
     }
+
+    // ---------- SAVE INTERNSHIPS ----------
+    public static void saveInternships(InternshipRepository internshipRepo) {
+        internshipRepo.saveInternships();
+    }
+
 
     // ---------- FULL SAVE (BACKUP) ----------
     public static void saveAllUsers(UserManager userManager) {

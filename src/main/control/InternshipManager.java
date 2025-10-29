@@ -1,25 +1,53 @@
 package main.control;
 
-import main.entity.*;
-import main.entity.enums.*;
+import main.data.InternshipRepository;
+import main.entity.Internship;
+import main.entity.enums.InternshipLevel;
+import main.entity.enums.InternshipStatus;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class InternshipManager {
-    private final List<Internship> internships = new ArrayList<>();
+
+    private final InternshipRepository internshipRepo;
+
+    public InternshipManager(InternshipRepository internshipRepo) {
+        this.internshipRepo = internshipRepo;
+    }
 
     // --- CREATE ---
     public void addInternship(Internship internship) {
-        internships.add(internship);
+        // Auto-assign readable ID if blank
+        if (internship.getInternshipId() == null || internship.getInternshipId().isBlank()) {
+            internship.setInternshipId(generateInternshipId());
+        }
+        internshipRepo.addInternship(internship);
+        internshipRepo.saveInternships(); // persist immediately
         System.out.println("✅ Internship added: " + internship.getTitle());
     }
+
+    // --- HELPER: Generate Short Internship IDs ---
+    private String generateInternshipId() {
+        int maxId = 0;
+        for (Internship i : internshipRepo.getAllInternships()) {
+            try {
+                if (i.getInternshipId().startsWith("INT")) {
+                    int num = Integer.parseInt(i.getInternshipId().substring(3));
+                    if (num > maxId) maxId = num;
+                }
+            } catch (NumberFormatException ignored) {}
+        }
+        return String.format("INT%03d", maxId + 1); // e.g. INT001
+    }
+
 
     // --- UPDATE STATUS (Staff only) ---
     public void updateInternshipStatus(String internshipId, InternshipStatus newStatus) {
         Internship i = findInternshipById(internshipId);
         if (i != null) {
             i.setStatus(newStatus);
+            internshipRepo.saveInternships();
             System.out.println("Internship " + internshipId + " status updated to " + newStatus);
         } else {
             System.out.println("⚠Internship not found.");
@@ -31,6 +59,7 @@ public class InternshipManager {
         Internship i = findInternshipById(internshipId);
         if (i != null) {
             i.setVisible(visibility);
+            internshipRepo.saveInternships();
             System.out.println("Visibility for " + i.getTitle() + " set to " + visibility);
         } else {
             System.out.println("Internship not found.");
@@ -71,12 +100,14 @@ public class InternshipManager {
         i.setClosingDate(newCloseDate);
         i.setNumSlots(newSlots);
 
+        internshipRepo.saveInternships();
         System.out.println("Internship " + internshipId + " updated successfully.");
     }
 
     // --- VIEW ALL INTERNSHIPS (Staff) ---
     public void displayAllInternships() {
         System.out.println("\n---- ALL INTERNSHIPS ----");
+        List<Internship> internships = internshipRepo.getAllInternships();
 
         if (internships.isEmpty()) {
             System.out.println("No internships yet.\n");
@@ -86,12 +117,12 @@ public class InternshipManager {
         for (Internship i : internships) {
             System.out.println(i);
         }
-
     }
 
     // --- VIEW MY INTERNSHIPS (Company Rep) ---
     public void displayMyInternships(String repId) {
         System.out.println("\n---- MY INTERNSHIPS ----");
+        List<Internship> internships = internshipRepo.getAllInternships();
         boolean found = false;
 
         for (Internship i : internships) {
@@ -108,7 +139,9 @@ public class InternshipManager {
 
     // --- FILTER FOR STUDENTS ---
     public List<Internship> getVisibleInternships(String major, int year) {
+        List<Internship> internships = internshipRepo.getAllInternships();
         List<Internship> visibleList = new ArrayList<>();
+
         for (Internship i : internships) {
             boolean levelAllowed = (year <= 2 && i.getLevel() == InternshipLevel.BASIC)
                     || (year >= 3); // Y3+ can apply to any
@@ -123,18 +156,11 @@ public class InternshipManager {
 
     // --- HELPER: Find by ID ---
     public Internship findInternshipById(String internshipId) {
-        for (Internship i : internships) {
-            if (i.getInternshipId().equalsIgnoreCase(internshipId)) {
-                return i;
-            }
-        }
-        return null;
+        return internshipRepo.findById(internshipId);
     }
 
     // --- GETTER ---
     public List<Internship> getAllInternships() {
-        return internships;
+        return internshipRepo.getAllInternships();
     }
-
-
 }

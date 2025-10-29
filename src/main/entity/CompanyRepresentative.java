@@ -25,7 +25,7 @@ public class CompanyRepresentative extends User {
         this.companyName = companyName;
         this.department = department;
         this.position = position;
-        this.accountStatus = AccountStatus.PENDING;
+        this.accountStatus = accountStatus;
     }
 
     public String getCompanyName() { return companyName; }

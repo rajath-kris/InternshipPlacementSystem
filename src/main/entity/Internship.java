@@ -51,7 +51,8 @@ public class Internship {
     public int getNumSlots() { return numSlots; }
     public boolean isVisible() { return visible; }
 
-    //  CONTROLLED SETTERS
+    //  CONTROLLED
+    public void setInternshipId(String internshipId) { this.internshipId = internshipId; }
     public void setTitle(String title) { this.title = title; }
     public void setDescription(String description) { this.description = description; }
     public void setLevel(InternshipLevel level) { this.level = level; }

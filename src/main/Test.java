@@ -1,50 +1,47 @@
 package main;
-import main.boundary.MainMenu;
+
+import main.boundary.*;
 import main.control.*;
 import main.data.*;
 import main.entity.*;
 import main.entity.enums.*;
 
-
-public class Test   {
+public class Test {
     public static void main(String[] args) {
 
-
         System.out.println("====================================");
-        System.out.println("NTU Internship Placement System");
+        System.out.println(" NTU Internship Placement System");
         System.out.println("====================================\n");
 
+        // ---------- INITIALIZE APP CONTEXT ----------
+        AppContext context = new AppContext();
+        UserManager userManager = context.userManager;
+        Authenticator auth = context.authenticator;
+        InternshipManager internshipManager = context.internshipManager;
+        InternshipRepository internshipRepo = context.internshipRepository;
 
-        // ---------- INITIALIZE MANAGERS ----------
-        UserManager userManager = new UserManager();
-        Authenticator auth = new Authenticator(userManager);
-        InternshipManager internshipManager = new InternshipManager();
-
-
-        // ---------- LOAD USER DATA ----------
-        DataLoader.loadUsers(
-                userManager,
-                "data/sample_student_list.csv",
-                "data/sample_company_representative_list.csv",
-                "data/sample_staff_list.csv"
-        );
-        // Display loaded users
+        // ---------- DISPLAY LOADED USERS ----------
+        System.out.println("\n--- LOADED USERS ---");
         userManager.displayAllUsers();
 
-        // Test login
+        // ---------- DISPLAY LOADED INTERNSHIPS ----------
+        System.out.println("\n--- LOADED INTERNSHIPS ---");
+        internshipManager.displayAllInternships();
+
+        // ---------- LOGIN TEST ----------
         System.out.println("\n--- LOGIN TEST ---");
         boolean loggedIn = auth.login("U2310001A", "password");
 
-        // ---------- POST-LOGIN ACTIONS ----------
         if (loggedIn) {
             User current = auth.getCurrentUser();
-            System.out.println("Current user role: " + current.getRole());
+            System.out.println("\n✅ Login Successful!");
+            System.out.println("Logged in as: " + current.getName() + " (" + current.getRole() + ")");
 
-            // For testing only: show role-based demo
-            if (current instanceof CompanyRepresentative) {
+            // ---------- ROLE-BASED SIMULATION ----------
+            if (current instanceof CompanyRepresentative rep) {
                 System.out.println("\n🏢 Company Representative Menu Simulation");
 
-                // Create a sample internship
+                // Create a new internship (10 args constructor)
                 Internship newInternship = new Internship(
                         "INT001",
                         "Software Engineering Intern",
@@ -53,26 +50,39 @@ public class Test   {
                         "CSC",
                         "2025-11-01",
                         "2025-12-31",
-                        ((CompanyRepresentative) current).getCompanyName(),
-                        current.getEmail(),
+                        rep.getCompanyName(),
+                        rep.getUserId(), // use rep ID instead of email
                         3
                 );
 
                 internshipManager.addInternship(newInternship);
-                internshipManager.displayMyInternships(current.getEmail());
+                internshipManager.displayMyInternships(rep.getUserId());
 
-            } else if (current instanceof Student) {
+            } else if (current instanceof Student s) {
                 System.out.println("\n🎓 Student Menu Simulation (View Internships)");
                 internshipManager.displayAllInternships();
 
-            } else if (current instanceof CareerCenterStaff) {
-                System.out.println("\n👩‍💼 Career Center Staff Menu Simulation (Approval View)");
-                internshipManager.displayAllInternships();
+            } else if (current instanceof CareerCenterStaff staff) {
+                System.out.println("\n👩‍💼 Career Center Staff Menu Simulation (Pending Approvals)");
+                // Staff views company rep approvals
+                for (User u : userManager.getAllUsers()) {
+                    if (u instanceof CompanyRepresentative rep) {
+                        System.out.printf("ID: %s | Name: %s | Company: %s | Status: %s\n",
+                                rep.getUserId(), rep.getName(), rep.getCompanyName(), rep.getAccountStatus());
+                    }
+                }
             }
 
-            // Logout at end
+            // ---------- LOGOUT ----------
             auth.logout();
+        } else {
+            System.out.println("❌ Login failed. Please check credentials.");
         }
+
+        // ---------- SAVE ALL CHANGES ----------
+        System.out.println("\n💾 Saving data...");
+        DataLoader.saveAllUsers(userManager);
+        DataLoader.saveInternships(internshipRepo);
 
         System.out.println("\n===== System Test Completed =====");
     }

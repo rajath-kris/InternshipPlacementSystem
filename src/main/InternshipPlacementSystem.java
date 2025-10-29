@@ -1,25 +1,24 @@
 package main;
+
 import main.boundary.MainMenu;
-import main.control.*;
+import main.control.AppContext;
 import main.data.DataLoader;
 
 public class InternshipPlacementSystem {
     public static void main(String[] args) {
+        AppContext context = new AppContext(); // Shared managers and data
 
-        UserManager userManager = new UserManager();
-        Authenticator auth = new Authenticator(userManager);
-        InternshipManager internshipManager = new InternshipManager();
-
-        // Load existing data
-        DataLoader.loadUsers(
-                userManager,
-                "data/sample_student_list.csv",
-                "data/sample_company_representative_list.csv",
-                "data/sample_staff_list.csv"
+        MainMenu mainMenu = new MainMenu(
+                context.authenticator,
+                context.userManager,
+                context.internshipManager
         );
 
-        MainMenu mainMenu = new MainMenu(auth,userManager);
         mainMenu.start();
-    }
 
+        // Optional: save on exit
+        DataLoader.saveAllUsers(context.userManager);
+        DataLoader.saveInternships(context.internshipRepository);
+        System.out.println("💾 All data saved. Goodbye!");
+    }
 }
