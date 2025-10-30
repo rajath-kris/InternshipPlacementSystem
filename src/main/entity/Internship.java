@@ -70,4 +70,9 @@ public class Internship {
         return String.format("[%s] %s (%s, %s) - %s | Status: %s | Visible: %s",
                 internshipId, title, companyName, level, preferredMajor, status, visible ? "ON" : "OFF");
     }
+
+    public String toStudentView() {
+        return String.format("[%s] %s\nDescription: %s\nPreferred Major: %s\nOpening: %s  |  Closing: %s  |  Slots: %d\n",
+                internshipId, title, description, preferredMajor, openingDate, closingDate, numSlots);
+    }
 }

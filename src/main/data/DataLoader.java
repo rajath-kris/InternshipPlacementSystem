@@ -25,10 +25,11 @@ public class DataLoader {
                 String major = r[2].trim();
                 int year = Integer.parseInt(r[3].trim());
                 String email = r[4].trim();
+                String password = (r.length > 5) ? r[5].trim() : "password";
 
-                userManager.addUser(new Student(name, id, email, "password", year, major));
+                userManager.addUser(new Student(name, id, email, password, year, major));
             } catch (Exception e) {
-                System.out.println("⚠️ Error loading student record: " + String.join(",", r));
+                System.out.println("Error loading student record: " + String.join(",", r));
             }
         }
 
@@ -44,6 +45,7 @@ public class DataLoader {
                 String position = r[4].trim();
                 String email = r[5].trim();
                 String statusStr = r[6].trim().toUpperCase();
+                String password = (r.length > 7) ? r[7].trim() : "password";
 
                 AccountStatus status;
                 try {
@@ -53,10 +55,10 @@ public class DataLoader {
                 }
 
                 userManager.addUser(new CompanyRepresentative(
-                        name, id, email, "password", companyName, department, position, status
+                        name, id, email, password, companyName, department, position, status
                 ));
             } catch (Exception e) {
-                System.out.println("⚠️ Error loading company representative record: " + String.join(",", r));
+                System.out.println("Error loading company representative record: " + String.join(",", r));
             }
         }
 
@@ -70,11 +72,13 @@ public class DataLoader {
                 String role = r[2].trim();
                 String department = r[3].trim();
                 String email = r[4].trim();
+                String password = (r.length > 5) ? r[5].trim() : "password";
 
-                CareerCenterStaff staff = new CareerCenterStaff(name, id, email, "password", department);
+
+                CareerCenterStaff staff = new CareerCenterStaff(name, id, email, password, department);
                 userManager.addUser(staff);
             } catch (Exception e) {
-                System.out.println("⚠️ Error loading staff record: " + String.join(",", r));
+                System.out.println("Error loading staff record: " + String.join(",", r));
             }
         }
 
@@ -111,20 +115,20 @@ public class DataLoader {
             // Student: StudentID, Name, Major, Year, Email
             FileHandler.appendToCSV("data/sample_student_list.csv",
                     new String[]{s.getUserId(), s.getName(), s.getMajor(),
-                            String.valueOf(s.getYearOfStudy()), s.getEmail()});
+                            String.valueOf(s.getYearOfStudy()), s.getEmail(),s.getPassword()});
 
         } else if (user instanceof CompanyRepresentative rep) {
             // CompanyRep: CompanyRepID, Name, CompanyName, Department, Position, Email, Status
             FileHandler.appendToCSV("data/sample_company_representative_list.csv",
                     new String[]{rep.getUserId(), rep.getName(), rep.getCompanyName(),
                             rep.getDepartment(), rep.getPosition(),
-                            rep.getEmail(), rep.getAccountStatus().name()});
+                            rep.getEmail(), rep.getAccountStatus().name(),rep.getPassword()});
 
         } else if (user instanceof CareerCenterStaff staff) {
             // Staff: StaffID, Name, Role, Department, Email
             FileHandler.appendToCSV("data/sample_staff_list.csv",
                     new String[]{staff.getUserId(), staff.getName(), staff.getRole(),
-                            staff.getStaffDepartment(), staff.getEmail()});
+                            staff.getStaffDepartment(), staff.getEmail(),staff.getPassword()});
         }
     }
 
@@ -138,17 +142,16 @@ public class DataLoader {
             saveStaff("data/sample_staff_list.csv", userManager);
         }
     }
-
     // ---------- SAVE STUDENTS ----------
     public static void saveStudents(String filePath, UserManager userManager) {
         List<String[]> rows = new ArrayList<>();
-        String header = "StudentID,Name,Major,Year,Email";
+        String header = "StudentID,Name,Major,Year,Email,Password";
 
         for (User u : userManager.getAllUsers()) {
             if (u instanceof Student s) {
                 rows.add(new String[]{
                         s.getUserId(), s.getName(), s.getMajor(),
-                        String.valueOf(s.getYearOfStudy()), s.getEmail()
+                        String.valueOf(s.getYearOfStudy()), s.getEmail(), s.getPassword()
                 });
             }
         }
@@ -159,14 +162,14 @@ public class DataLoader {
     // ---------- SAVE COMPANY REPRESENTATIVES ----------
     public static void saveCompanyReps(String filePath, UserManager userManager) {
         List<String[]> rows = new ArrayList<>();
-        String header = "CompanyRepID,Name,CompanyName,Department,Position,Email,Status";
+        String header = "CompanyRepID,Name,CompanyName,Department,Position,Email,Status,Password";
 
         for (User u : userManager.getAllUsers()) {
             if (u instanceof CompanyRepresentative rep) {
                 rows.add(new String[]{
                         rep.getUserId(), rep.getName(), rep.getCompanyName(),
                         rep.getDepartment(), rep.getPosition(),
-                        rep.getEmail(), rep.getAccountStatus().name()
+                        rep.getEmail(), rep.getAccountStatus().name(),rep.getPassword()
                 });
             }
         }
@@ -177,13 +180,13 @@ public class DataLoader {
     // ---------- SAVE CAREER CENTER STAFF ----------
     public static void saveStaff(String filePath, UserManager userManager) {
         List<String[]> rows = new ArrayList<>();
-        String header = "StaffID,Name,Role,Department,Email";
+        String header = "StaffID,Name,Role,Department,Email,Password";
 
         for (User u : userManager.getAllUsers()) {
-            if (u instanceof CareerCenterStaff s) {
+            if (u instanceof CareerCenterStaff staff) {
                 rows.add(new String[]{
-                        s.getUserId(), s.getName(), s.getRole(),
-                        s.getStaffDepartment(), s.getEmail()
+                        staff.getUserId(), staff.getName(), staff.getRole(),
+                        staff.getStaffDepartment(), staff.getEmail(),staff.getPassword()
                 });
             }
         }

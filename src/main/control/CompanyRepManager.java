@@ -14,7 +14,7 @@ public class CompanyRepManager {
 
     public void registerNewRep(String name, String email, String company, String dept, String position) {
         if (userManager.userExists(email)) {
-            System.out.println("⚠️ A representative with this email already exists.");
+            System.out.println(" A representative with this email already exists.");
             return;
         }
 

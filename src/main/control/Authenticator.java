@@ -1,17 +1,21 @@
 package main.control;
 
+import main.data.DataLoader;
 import main.entity.CompanyRepresentative;
 import main.entity.User;
 import main.entity.enums.AccountStatus;
+import main.util.InputHandler;
 
 import java.util.Scanner;
 
 public class Authenticator {
     private final UserManager userManager;
     private User currentUser;
+    private InputHandler inputHandler;
 
     public Authenticator(UserManager userManager) {
         this.userManager = userManager;
+        this.inputHandler = new InputHandler();
     }
 
     // Attempt login (ID or Email depending on role)
@@ -46,9 +50,15 @@ public class Authenticator {
                 return false;
             }
             if (rep.getAccountStatus() != AccountStatus.APPROVED) {
-                System.out.println("Your account has not been approved yet.");
-                System.out.println("   Current status: " + rep.getAccountStatus());
-                return false;
+                System.out.println("\nCurrent status: " + rep.getAccountStatus());
+                if(rep.getAccountStatus() == AccountStatus.REJECTED){
+                    System.out.println("Your account has been rejected");
+                    return false;
+                }
+                else{
+                    System.out.println("Your account has not been approved yet.");
+                    return false;
+                }
             }
         }
 
@@ -70,22 +80,33 @@ public class Authenticator {
     }
 
     // Change password
-    public boolean changePassword(User currentUser) {
-        Scanner sc = new Scanner(System.in);
-        System.out.print("Enter old password: ");
-        String oldPw = sc.nextLine();
-        System.out.print("Enter new password: ");
-        String newPw = sc.nextLine();
+    public void changePassword(User currentUser) {
+        if (currentUser == null) {
+            System.out.println("⚠ No user is currently logged in.");
+            return;
+        }
+
+        String oldPw = inputHandler.readPassword("Enter current password: ");
+        String newPw = inputHandler.readPassword("Enter new password: ");
+        if (newPw.length() < 4) {
+            System.out.println("⚠ Password too short. Minimum 4 characters.");
+            return;
+        }
+        String confirmPw = inputHandler.readPassword("Confirm new password: ");
+
+        if (!newPw.equals(confirmPw)) {
+            System.out.println("❌ New passwords do not match.");
+            return;
+        }
 
         if (currentUser.changePassword(oldPw, newPw)) {
-//            userManager.saveUsersToFile(); // persist changes
-            System.out.println("✅ Password changed successfully!");
-            return true;
+            DataLoader.updateUser(currentUser, userManager);
+            System.out.println("✅ Password updated successfully and saved.");
         } else {
-            System.out.println("❌ Incorrect old password!");
-            return false;
+            System.out.println("❌ Incorrect current password.");
         }
     }
+
 
     // Get current logged-in user
     public User getCurrentUser() {

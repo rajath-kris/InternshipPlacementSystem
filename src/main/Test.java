@@ -1,6 +1,5 @@
 package main;
 
-import main.boundary.*;
 import main.control.*;
 import main.data.*;
 import main.entity.*;
@@ -46,7 +45,7 @@ public class Test {
         System.out.println("\n🎓 Testing student login and internship view");
         if (auth.login("U2310001A", "password")) {
             Student s = (Student) auth.getCurrentUser();
-            List<Internship> visible = internshipManager.getVisibleInternships(s.getMajor(), s.getYearOfStudy());
+            List<Internship> visible = internshipManager.getVisibleInternshipsForStudent(s.getMajor(), s.getYearOfStudy());
             System.out.println("Visible internships for " + s.getMajor() + " (" + s.getYearOfStudy() + "):");
             for (Internship i : visible) System.out.println(i);
             auth.logout();
@@ -56,15 +55,15 @@ public class Test {
         System.out.println("\n🏢 Testing company rep login and management");
         if (auth.login("alice@google.com", "password")) {
             CompanyRepresentative rep = (CompanyRepresentative) auth.getCurrentUser();
-            internshipManager.displayMyInternships(rep.getUserId());
-            internshipManager.toggleVisibility("INT001", false);
-            internshipManager.displayMyInternships(rep.getUserId());
+            internshipManager.displayInternshipsForRep(rep.getUserId());
+            internshipManager.toggleVisibilityForRep(rep.getUserId(),"INT001", true);
+            internshipManager.displayInternshipsForRep(rep.getUserId());
             auth.logout();
         }
 
         // --- Simulate staff login and approval ---
         System.out.println("\n👩‍💼 Testing staff login and approval menu");
-        if (auth.login("tan002@ntu.edu.sg", "password")) { // replace with real staff email from CSV
+        if (auth.login("tan002@ntu.edu.sg", "1234")) { // replace with real staff email from CSV
             CareerCenterStaff staff = (CareerCenterStaff) auth.getCurrentUser();
             internshipManager.displayAllInternships();
             internshipManager.updateInternshipStatus("INT003", InternshipStatus.APPROVED);
@@ -149,7 +148,7 @@ public class Test {
                 "Software Engineering Intern",
                 "Assist in developing full-stack web applications.",
                 InternshipLevel.BASIC,
-                "CSC",
+                "CS",
                 "2025-11-01",
                 "2025-12-31",
                 "Google",
@@ -179,7 +178,7 @@ public class Test {
                 "AI Research Assistant",
                 "Support AI team in developing machine learning models.",
                 InternshipLevel.ADVANCED,
-                "CSC",
+                "CS",
                 "2025-09-01",
                 "2025-12-15",
                 "OpenAI",
@@ -189,9 +188,17 @@ public class Test {
         i3.setStatus(InternshipStatus.PENDING);
         i3.setVisible(false);
 
-        internshipManager.addInternship(i1);
-        internshipManager.addInternship(i2);
-        internshipManager.addInternship(i3);
+        internshipManager.createInternship(i1.getInternshipId(),i1.getCompanyName(),i1.getTitle()
+        ,i1.getDescription(),i1.getLevel(),i1.getPreferredMajor(),i1.getOpeningDate()
+        ,i1.getClosingDate(),i1.getNumSlots());
+
+        internshipManager.createInternship(i2.getInternshipId(),i2.getCompanyName(),i2.getTitle()
+                ,i2.getDescription(),i2.getLevel(),i2.getPreferredMajor(),i2.getOpeningDate()
+                ,i2.getClosingDate(),i2.getNumSlots());
+
+        internshipManager.createInternship(i3.getInternshipId(),i3.getCompanyName(),i3.getTitle()
+                ,i3.getDescription(),i3.getLevel(),i3.getPreferredMajor(),i3.getOpeningDate()
+                ,i3.getClosingDate(),i3.getNumSlots());
 
         internshipRepo.saveInternships();
         System.out.println("✅ Internship seeding complete!\n");

@@ -1,4 +1,6 @@
-CompanyRepID,Name,CompanyName,Department,Position,Email,Status
-REP001,Alice Tan,Google,Engineering,Talent Partner,alice@google.com,APPROVED
-REP002,Ben Lee,Microsoft,HR,Recruitment Lead,ben@microsoft.com,APPROVED
-REP003,Chloe Lim,OpenAI,Research,AI Recruiter,chloe@openai.com,APPROVED
+CompanyRepID,Name,CompanyName,Department,Position,Email,Status,Password
+REP001,Alice Tan,Google,Engineering,Talent Partner,alice@google.com,APPROVED,password
+REP002,Ben Lee,Microsoft,HR,Recruitment Lead,ben@microsoft.com,APPROVED,password
+REP003,Chloe Lim,OpenAI,Research,AI Recruiter,chloe@openai.com,APPROVED,password
+REP1761796264024,Rajath Krishna,MegaMind,HR,Chef,rajathkrishna8@gmail.com,APPROVED,password
+REP1761796449892,Shrey Vivek,Google,HR,Cook,shrey@123.com,REJECTED,password

@@ -36,12 +36,14 @@ public abstract class User {
                 name, userId, email, getRole());
     }
 
-    public boolean changePassword(String oldPw, String newPw) {
-        if (this.password.equals(oldPw)) {
-            this.password = newPw;
+    public boolean changePassword(String oldPassword, String newPassword) {
+        if (this.password.equals(oldPassword)) {
+            this.password = newPassword;
             return true;
         }
         return false;
     }
 
 }
+
+

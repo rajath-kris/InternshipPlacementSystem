@@ -5,19 +5,12 @@ import main.entity.*;
 import main.entity.enums.AccountStatus;
 import main.util.InputHandler;
 
-/**
- * MainMenu - Entry point for login, registration, and redirection.
- */
 public class MainMenu {
-    private final Authenticator authController;
-    private final UserManager userManager;
-    private final InternshipManager internshipManager;
+    private final AppContext app; // 🟩 NEW - central context
     private final InputHandler inputHandler;
 
-    public MainMenu(Authenticator authController, UserManager userManager, InternshipManager internshipManager) {
-        this.authController = authController;
-        this.userManager = userManager;
-        this.internshipManager = internshipManager;
+    public MainMenu(AppContext app) {
+        this.app = app;
         this.inputHandler = new InputHandler();
     }
 
@@ -33,8 +26,8 @@ public class MainMenu {
             int choice = inputHandler.readInt("Enter choice: ", 1, 3);
 
             switch (choice) {
-                case 1 -> handleLogin();
-                case 2 -> handleRegistration();
+                case 1 -> loginMenu();
+                case 2 -> RegistrationMenu();
                 case 3 -> {
                     running = false;
                     System.out.println("\n👋 Exiting system. Goodbye!");
@@ -51,24 +44,24 @@ public class MainMenu {
         System.out.println("===============================================");
     }
 
-    private void handleLogin() {
+    private void loginMenu() {
         System.out.println("\n--- LOGIN ---");
-        String id = inputHandler.readString("User ID or Email: ");
+        String idOrEmail = inputHandler.readString("User ID or Email: ");
         String password = inputHandler.readPassword("Password: ");
+        String input = idOrEmail.trim().toLowerCase();
 
-        boolean loggedIn = authController.login(id, password);
+        boolean loggedIn = app.authenticator.login(input, password);
         if (!loggedIn) {
             System.out.println("Login Failed.\n");
             return;
         }
 
-        User user = authController.getCurrentUser();
+        User user = app.authenticator.getCurrentUser();
 
-        // Restrict login for unapproved reps
         if (user instanceof CompanyRepresentative rep &&
                 rep.getAccountStatus() != AccountStatus.APPROVED) {
             System.out.println("\nYour account is not approved yet. Current status: " + rep.getAccountStatus());
-            authController.logout();
+            app.authenticator.logout();
             return;
         }
 
@@ -78,21 +71,21 @@ public class MainMenu {
     private void redirectToRoleMenu(User user) {
         if (user instanceof Student s) {
             System.out.println("🎓 Redirecting to Student Menu...");
-            new StudentMenu(authController, internshipManager, userManager, s).start();
+            new StudentMenu(app, s).start();
 
         } else if (user instanceof CompanyRepresentative rep) {
             System.out.println("🏢 Redirecting to Company Representative Menu...");
-            new CompanyRepMenu(authController, internshipManager, userManager, rep).start();
+            new CompanyRepMenu(app, rep).start();
 
         } else if (user instanceof CareerCenterStaff staff) {
             System.out.println("👩‍💼 Redirecting to Staff Menu...");
-            new StaffMenu(authController, internshipManager, userManager, staff).start();
+            new StaffMenu(app, staff).start();
         }
 
-        authController.logout();
+        app.authenticator.logout();
     }
 
-    private void handleRegistration() {
+    private void RegistrationMenu() {
         System.out.println("\n--- REGISTER ---");
         System.out.println("Only Company Representatives can self-register in this system.");
         System.out.println("1. Register as Company Representative");
@@ -108,8 +101,6 @@ public class MainMenu {
         String dept = inputHandler.readString("Department: ");
         String position = inputHandler.readString("Position: ");
 
-        CompanyRepManager repManager = new CompanyRepManager(userManager);
-        repManager.registerNewRep(name, email, company, dept, position);
+        app.companyRepManager.registerNewRep(name, email, company, dept, position);
     }
 }
-
