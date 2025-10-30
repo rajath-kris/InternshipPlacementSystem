@@ -26,11 +26,11 @@ public class CompanyRepMenu {
             System.out.println("3. Edit Internship");
             System.out.println("4. Toggle Internship Visibility");
             System.out.println("5. View Applications");
-            System.out.println("8. Review Applications");
+            System.out.println("6. Review Applications");
             System.out.println("7. Change Password");
             System.out.println("8. Logout");
 
-            int choice = input.readInt("Enter choice: ", 1, 8);
+            int choice = input.readInt("Enter choice: ", 1, 10);
             switch (choice) {
                 case 1 -> app.internshipManager.displayInternshipsForRep(currentRep.getUserId());
                 case 2 -> createInternshipInput();
