@@ -1,2 +1,4 @@
 CompanyRepID,Name,CompanyName,Department,Position,Email,Status
-REP1761134662335,ALLAH,Heaven,Heaven again,Lead,god@gmail.com,APPROVED
+REP001,Alice Tan,Google,Engineering,Talent Partner,alice@google.com,APPROVED
+REP002,Ben Lee,Microsoft,HR,Recruitment Lead,ben@microsoft.com,APPROVED
+REP003,Chloe Lim,OpenAI,Research,AI Recruiter,chloe@openai.com,APPROVED

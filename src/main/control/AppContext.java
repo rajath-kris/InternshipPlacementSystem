@@ -1,6 +1,4 @@
 package main.control;
-
-import main.control.*;
 import main.data.*;
 
 /**
@@ -27,7 +25,7 @@ public class AppContext {
         );
 
         // Load internships
-        internshipRepository = DataLoader.loadInternships("data/internships.csv");
+        internshipRepository =  new InternshipRepository("data/internships.csv");
         internshipManager = new InternshipManager(internshipRepository);
 
         System.out.println("✅ AppContext initialized successfully.");

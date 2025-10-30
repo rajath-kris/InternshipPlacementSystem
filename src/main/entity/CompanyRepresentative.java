@@ -54,17 +54,4 @@ public class CompanyRepresentative extends User {
         return String.format("Company Rep: %s [ID: %s, Company: %s, Status: %s]",
                 getName(), getUserId(), companyName, accountStatus);
     }
-
-    @Override
-    public void register(UserManager userManager) {
-        if (userManager.userExists(this.getEmail())) {
-            System.out.println("A company representative with this email already exists.");
-            return;
-        }
-        userManager.addUser(this);
-        DataLoader.appendNewUser(this);
-        System.out.println("Company Representative registered successfully.");
-        System.out.println("Account status: PENDING approval by Career Center Staff.");
-    }
-
 }

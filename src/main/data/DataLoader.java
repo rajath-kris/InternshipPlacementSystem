@@ -81,30 +81,30 @@ public class DataLoader {
         System.out.println("✅ All user data loaded successfully (default password = 'password').");
     }
 
-    // ---------- LOAD INTERNSHIPS ----------
-    public static InternshipRepository loadInternships(String internshipFile) {
-        System.out.println("Loading internships from: " + internshipFile);
-        return new InternshipRepository(internshipFile);
-    }
+//    // ---------- LOAD INTERNSHIPS ----------
+//    public static InternshipRepository loadInternships(String internshipFile) {
+//        System.out.println("Loading internships from: " + internshipFile);
+//        return new InternshipRepository(internshipFile);
+//    }
 
-    // ---------- APPEND NEW INTERNSHIP ----------
-    public static void appendNewInternship(Internship internship) {
-        // CSV order: id,title,description,level,major,openDate,closeDate,status,company,repId,slots,visible
-        FileHandler.appendToCSV("data/internships.csv", new String[]{
-                internship.getInternshipId(),
-                internship.getTitle(),
-                internship.getDescription(),
-                internship.getLevel().name(),
-                internship.getPreferredMajor(),
-                internship.getOpeningDate(),
-                internship.getClosingDate(),
-                internship.getStatus().name(),
-                internship.getCompanyName(),
-                internship.getRepresentativeId(),
-                String.valueOf(internship.getNumSlots()),
-                String.valueOf(internship.isVisible())
-        });
-    }
+//    // ---------- APPEND NEW INTERNSHIP ----------
+//    public static void appendNewInternship(Internship internship) {
+//        // CSV order: id,title,description,level,major,openDate,closeDate,status,company,repId,slots,visible
+//        FileHandler.appendToCSV("data/internships.csv", new String[]{
+//                internship.getInternshipId(),
+//                internship.getTitle(),
+//                internship.getDescription(),
+//                internship.getLevel().name(),
+//                internship.getPreferredMajor(),
+//                internship.getOpeningDate(),
+//                internship.getClosingDate(),
+//                internship.getStatus().name(),
+//                internship.getCompanyName(),
+//                internship.getRepresentativeId(),
+//                String.valueOf(internship.getNumSlots()),
+//                String.valueOf(internship.isVisible())
+//        });
+//    }
     // ---------- APPEND NEW USER ----------
     public static void appendNewUser(User user) {
         if (user instanceof Student s) {

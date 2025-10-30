@@ -94,48 +94,22 @@ public class MainMenu {
 
     private void handleRegistration() {
         System.out.println("\n--- REGISTER ---");
-        System.out.println("Select role to register as:");
-        System.out.println("1. Student");
-        System.out.println("2. Company Representative");
-        System.out.println("3. Career Center Staff");
+        System.out.println("Only Company Representatives can self-register in this system.");
+        System.out.println("1. Register as Company Representative");
+        System.out.println("2. Back to Main Menu");
 
-        int choice = inputHandler.readInt("Enter choice: ", 1, 3);
-        User newUser = null;
+        int choice = inputHandler.readInt("Enter choice: ", 1, 2);
+        if (choice == 2) return;
 
-        switch (choice) {
-            case 1 -> {
-                System.out.println("\n--- STUDENT REGISTRATION ---");
-                String name = inputHandler.readString("Full Name: ");
-                String id = inputHandler.readString("Student ID (e.g., U1234567A): ");
-                String email = inputHandler.readEmail("Email: ");
-                int year = inputHandler.readInt("Year of Study (1-4): ", 1, 4);
-                String major = inputHandler.readString("Major: ");
-                newUser = new Student(name, id, email, "password", year, major);
-            }
-            case 2 -> {
-                System.out.println("\n--- COMPANY REPRESENTATIVE REGISTRATION ---");
-                String name = inputHandler.readString("Full Name: ");
-                String email = inputHandler.readEmail("Company Email: ");
-                String company = inputHandler.readString("Company Name: ");
-                String dept = inputHandler.readString("Department: ");
-                String position = inputHandler.readString("Position: ");
-                String repId = "REP" + System.currentTimeMillis();
-                newUser = new CompanyRepresentative(name, repId, email, "password",
-                        company, dept, position, AccountStatus.PENDING);
-            }
-            case 3 -> {
-                System.out.println("\n--- STAFF REGISTRATION ---");
-                String name = inputHandler.readString("Full Name: ");
-                String id = inputHandler.readString("Staff ID: ");
-                String email = inputHandler.readEmail("Staff Email: ");
-                String dept = inputHandler.readString("Department: ");
-                newUser = new CareerCenterStaff(name, id, email, "password", dept);
-            }
-        }
+        System.out.println("\n--- COMPANY REPRESENTATIVE REGISTRATION ---");
+        String name = inputHandler.readString("Full Name: ");
+        String email = inputHandler.readEmail("Company Email: ");
+        String company = inputHandler.readString("Company Name: ");
+        String dept = inputHandler.readString("Department: ");
+        String position = inputHandler.readString("Position: ");
 
-        if (newUser != null) {
-            newUser.register(userManager);
-            System.out.println("Registration complete.\n");
-        }
+        CompanyRepManager repManager = new CompanyRepManager(userManager);
+        repManager.registerNewRep(name, email, company, dept, position);
     }
 }
+

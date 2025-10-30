@@ -44,5 +44,4 @@ public abstract class User {
         return false;
     }
 
-    public abstract void register(UserManager userManager);
 }

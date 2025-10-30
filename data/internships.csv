@@ -1,0 +1,5 @@
+id,title,description,level,major,openDate,closeDate,status,company,repId,slots,visible
+INT001,Software Engineering Intern,Assist in developing full-stack web applications.,BASIC,CSC,2025-11-01,2025-12-31,APPROVED,Google,REP001,3,false
+INT002,Data Analyst Intern,Work on dashboards and data visualizations for performance tracking.,INTERMEDIATE,EEE,2025-10-15,2025-12-30,APPROVED,Microsoft,REP002,2,true
+INT003,AI Research Assistant,Support AI team in developing machine learning models.,ADVANCED,CSC,2025-09-01,2025-12-15,APPROVED,OpenAI,REP003,1,false
+INT004,Hardware Design Intern,Assist in PCB design and circuit testing.,BASIC,EEE,2025-11-10,2026-01-15,APPROVED,Intel,REP004,4,true

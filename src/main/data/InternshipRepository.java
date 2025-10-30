@@ -89,12 +89,29 @@ public class InternshipRepository {
     private List<Internship> loadInternships() {
         List<Internship> list = new ArrayList<>();
         List<String[]> raw = FileHandler.readCSV(filePath);
+        boolean headerSkipped = false;
+
 
         for (String[] row : raw) {
             try {
                 // Expected CSV: id, title, desc, level, major, open, close, status, company, repId, slots, visible
+
+                if (row.length == 0 || row[0].trim().isEmpty()) continue;
+                if (!headerSkipped && row[0].toLowerCase().contains("id")) {
+                    headerSkipped = true;
+                    continue;
+                }
                 if (row.length < 12) continue;
 
+                // --- LEVEL ---
+                InternshipLevel level;
+
+                try {
+                    level = InternshipLevel.valueOf(row[3].trim().toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    System.out.println("Unknown internship level: " + row[3] + " (defaulting to BASIC)");
+                    level = InternshipLevel.BASIC;
+                }
                 // Create internship using existing constructor (10 args)
                 Internship internship = new Internship(
                         row[0], // internshipId
@@ -116,7 +133,7 @@ public class InternshipRepository {
                 list.add(internship);
 
             } catch (Exception e) {
-                System.err.println("⚠ Skipping invalid internship row: " + e.getMessage());
+                System.err.println("Skipping invalid internship row: " + e.getMessage());
             }
         }
 
