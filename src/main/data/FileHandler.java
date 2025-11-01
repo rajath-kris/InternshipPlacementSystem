@@ -30,7 +30,7 @@ public class FileHandler {
 
         File file = new File(filePath);
         if (!file.exists()) {
-            System.out.println("⚠️ File not found: " + filePath);
+            System.out.println("File not found: " + filePath);
             return records;
         }
 
@@ -55,7 +55,7 @@ public class FileHandler {
                 records.add(values);
             }
         } catch (IOException e) {
-            System.out.println("⚠️ Error reading file: " + filePath);
+            System.out.println("Error reading file: " + filePath);
             e.printStackTrace();
         }
 
@@ -81,9 +81,9 @@ public class FileHandler {
                 writer.append(String.join(",", row)).append("\n");
             }
 
-            System.out.println("💾 Saved successfully to: " + filePath);
+//            System.out.println("Saved successfully to: " + filePath);
         } catch (IOException e) {
-            System.out.println("⚠️ Error writing to file: " + filePath);
+            System.out.println("Error writing to file: " + filePath);
             e.printStackTrace();
         }
     }
@@ -100,12 +100,12 @@ public class FileHandler {
             boolean fileExists = new File(filePath).exists();
             try (FileWriter writer = new FileWriter(filePath, true)) {
                 if (!fileExists) {
-                    System.out.println("⚠️ File did not exist, created new CSV: " + filePath);
+                    System.out.println("File did not exist, created new CSV: " + filePath);
                 }
                 writer.append(String.join(",", record)).append("\n");
             }
         } catch (IOException e) {
-            System.out.println("⚠️ Error appending to file: " + filePath);
+            System.out.println("Error appending to file: " + filePath);
             e.printStackTrace();
         }
     }

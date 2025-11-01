@@ -30,6 +30,16 @@ public class ApplicationManager {
             System.out.println("❌ Internship not found.");
             return;
         }
+
+        // --- Rule 0: Student cannot apply if they already accepted an offer ---
+        boolean hasAcceptedOffer = appRepo.getApplicationsByStudent(student.getUserId()).stream()
+                .anyMatch(a -> a.getStatus() == ApplicationStatus.ACCEPTED);
+
+        if (hasAcceptedOffer) {
+            System.out.println(" ❌ You have already accepted an internship offer. You cannot apply for new internships.");
+            return;
+        }
+
         // Rule 1: Internship must be visible and approved
         if (!internship.isVisible() || internship.getStatus() != InternshipStatus.APPROVED) {
             System.out.println("❌ Internship is not open for applications.");
@@ -42,7 +52,7 @@ public class ApplicationManager {
                 .count();
 
         if (existingApps >= MAX_APPLICATIONS_PER_STUDENT) {
-            System.out.println("You have already submitted " + MAX_APPLICATIONS_PER_STUDENT + " applications. Please withdraw one before applying again.");
+            System.out.println(" ❌ You have already submitted " + MAX_APPLICATIONS_PER_STUDENT + " applications. Please withdraw one before applying again.");
             return;
         }
 
@@ -51,26 +61,40 @@ public class ApplicationManager {
         LocalDate opening = LocalDate.parse(internship.getOpeningDate());
 
         if (LocalDate.now().isBefore(opening)) {
-            System.out.println("The application period has not opened yet.");
+            System.out.println("❌ The application period has not opened yet.");
             return;
         }
         if (LocalDate.now().isAfter(closing)) {
-            System.out.println("The application period has closed.");
+            System.out.println("❌ The application period has closed.");
+            return;
+        }
+        //  Rule 4: Applications should respect the Major Rules
+        if (!internshipMgr.majorsMatch(student.getMajor(), internship.getPreferredMajor())) {
+            System.out.printf("❌ You cannot apply. Internship is restricted to %s majors.%n",
+                    internship.getPreferredMajor());
             return;
         }
 
-        //  Rule 4: Applications should respect the Level rules
+
+        //  Rule 5: Applications should respect the Level rules
         boolean levelAllowed = (student.getYearOfStudy() <= 2 && internship.getLevel() == InternshipLevel.BASIC)
                 || (student.getYearOfStudy()  >= 3); // Year 3+ can apply to any level
         if (!levelAllowed) {
-            System.out.println("You are not eligible to apply for this internship level.");
+            System.out.println("❌ You are not eligible to apply for this internship level.");
             return;
         }
 
-        //  Rule 5: Prevent duplicate application for same internship ---
+        // Rule 6 : Check slots left
+
+        if (internship.getSlotsLeft() <= 0) {
+            System.out.println("❌ This internship has no remaining slots.");
+            return;
+        }
+
+        //  Rule 7: Prevent duplicate application for same internship ---
         for (Application existing : appRepo.getApplicationsByStudent(student.getUserId())) {
             if (existing.getInternshipId().equalsIgnoreCase(internshipId)) {
-                System.out.println("You already applied for this internship.");
+                System.out.println("❌ You already applied for this internship.");
                 return;
             }
         }
@@ -155,6 +179,13 @@ public class ApplicationManager {
 
         // Accept the selected one
         selected.setStatus(ApplicationStatus.ACCEPTED);
+
+        // Decrement slot count
+        Internship acceptedInternship = internshipMgr.findInternshipById(selected.getInternshipId());
+        if (acceptedInternship != null) {
+            acceptedInternship.decrementSlot();
+            internshipMgr.saveAllInternships();
+        }
 
         // Withdraw all other active applications
         for (Application a : appRepo.getAllApplications()) {

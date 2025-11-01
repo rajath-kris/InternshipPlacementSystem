@@ -188,15 +188,15 @@ public class Test {
         i3.setStatus(InternshipStatus.PENDING);
         i3.setVisible(false);
 
-        internshipManager.createInternship(i1.getInternshipId(),i1.getCompanyName(),i1.getTitle()
+        internshipManager.createInternship("REP001",i1.getCompanyName(),i1.getTitle()
         ,i1.getDescription(),i1.getLevel(),i1.getPreferredMajor(),i1.getOpeningDate()
         ,i1.getClosingDate(),i1.getNumSlots());
 
-        internshipManager.createInternship(i2.getInternshipId(),i2.getCompanyName(),i2.getTitle()
+        internshipManager.createInternship("REP002",i2.getCompanyName(),i2.getTitle()
                 ,i2.getDescription(),i2.getLevel(),i2.getPreferredMajor(),i2.getOpeningDate()
                 ,i2.getClosingDate(),i2.getNumSlots());
 
-        internshipManager.createInternship(i3.getInternshipId(),i3.getCompanyName(),i3.getTitle()
+        internshipManager.createInternship("REP003",i3.getCompanyName(),i3.getTitle()
                 ,i3.getDescription(),i3.getLevel(),i3.getPreferredMajor(),i3.getOpeningDate()
                 ,i3.getClosingDate(),i3.getNumSlots());
 

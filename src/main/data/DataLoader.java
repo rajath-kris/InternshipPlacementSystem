@@ -82,7 +82,7 @@ public class DataLoader {
             }
         }
 
-        System.out.println("✅ All user data loaded successfully (default password = 'password').");
+        System.out.println("✅ All user data loaded successfully ");
     }
 
 //    // ---------- LOAD INTERNSHIPS ----------
@@ -205,6 +205,6 @@ public class DataLoader {
         saveStudents("data/sample_student_list.csv", userManager);
         saveCompanyReps("data/sample_company_representative_list.csv", userManager);
         saveStaff("data/sample_staff_list.csv", userManager);
-        System.out.println("💾 All user data saved successfully.");
+        System.out.println(" All user data saved successfully.");
     }
 }

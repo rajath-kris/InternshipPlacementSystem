@@ -24,7 +24,7 @@ public class InternshipRepository {
 
     // CSV header — used by FileHandler.writeCSV
     private static final String CSV_HEADER =
-            "id,title,description,level,major,openDate,closeDate,status,company,repId,slots,visible";
+            "id,title,description,level,major,openDate,closeDate,status,company,repId,totalSlots,slotsLeft,visible";
 
     public InternshipRepository(String filePath) {
         this.filePath = filePath;
@@ -78,6 +78,7 @@ public class InternshipRepository {
                     i.getCompanyName(),
                     i.getRepresentativeId(),
                     String.valueOf(i.getNumSlots()),
+                    String.valueOf(i.getSlotsLeft()),
                     String.valueOf(i.isVisible())
             });
         }
@@ -94,14 +95,14 @@ public class InternshipRepository {
 
         for (String[] row : raw) {
             try {
-                // Expected CSV: id, title, desc, level, major, open, close, status, company, repId, slots, visible
+                // Expected CSV: id, title, desc, level, major, open, close, status, company, repId, slots, slotsLeft visible
 
                 if (row.length == 0 || row[0].trim().isEmpty()) continue;
                 if (!headerSkipped && row[0].toLowerCase().contains("id")) {
                     headerSkipped = true;
                     continue;
                 }
-                if (row.length < 12) continue;
+                if (row.length < 13) continue;
 
                 // --- LEVEL ---
                 InternshipLevel level;
@@ -117,7 +118,7 @@ public class InternshipRepository {
                         row[0], // internshipId
                         row[1], // title
                         row[2], // description
-                        InternshipLevel.valueOf(row[3].toUpperCase()),
+                        level,
                         row[4], // preferredMajor
                         row[5], // openingDate
                         row[6], // closingDate
@@ -125,10 +126,10 @@ public class InternshipRepository {
                         row[9], // representativeId
                         Integer.parseInt(row[10]) // numSlots
                 );
-
+                internship.setSlotsLeft(Integer.parseInt(row[11]));
                 // Set persisted status & visibility
                 internship.setStatus(InternshipStatus.valueOf(row[7].toUpperCase()));
-                internship.setVisible(Boolean.parseBoolean(row[11]));
+                internship.setVisible(Boolean.parseBoolean(row[12]));
 
                 list.add(internship);
 

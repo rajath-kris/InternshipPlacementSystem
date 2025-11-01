@@ -94,12 +94,12 @@ public class StudentMenu {
         //  If student has an offer, prompt to accept
         if (hasOffer) {
             System.out.println("\n🎉 You have one or more offers!");
-            boolean accept = input.readYesNo("Would you like to accept an offer now? (Y/N): ");
+            boolean accept = input.readYesNo("Would you like to accept an offer now?");
 
             if (accept) {
-                String id = input.readString("Enter Internship ID of the offer to accept: ");
+                String id = input.readString("Enter Application ID of the offer to accept: ");
                 System.out.println("Accepting this offer will withdraw all other applications.");
-                boolean confirm = input.readYesNo("Proceed? (Y/N): ");
+                boolean confirm = input.readYesNo("Proceed?");
                 if (!confirm) {
                     System.out.println("Offer not accepted.");
                     return;

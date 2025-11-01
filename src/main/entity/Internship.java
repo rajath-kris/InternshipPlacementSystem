@@ -14,7 +14,8 @@ public class Internship {
     private InternshipStatus status;
     private String companyName;
     private String representativeId;
-    private int numSlots;
+    private int numSlots;     // total slots
+    private int slotsLeft;     // available slots
     private boolean visible;
 
     public Internship(String internshipId, String title, String description,
@@ -32,6 +33,8 @@ public class Internship {
         this.companyName = companyName;
         this.representativeId = representativeId;
         this.numSlots = numSlots;
+        this.slotsLeft = numSlots;   // initialize equal to total
+
 
         this.status = InternshipStatus.PENDING; // default
         this.visible = false;                    // default
@@ -49,6 +52,7 @@ public class Internship {
     public String getCompanyName() { return companyName; }
     public String getRepresentativeId() { return representativeId; }
     public int getNumSlots() { return numSlots; }
+    public int getSlotsLeft() { return slotsLeft; }
     public boolean isVisible() { return visible; }
 
     //  CONTROLLED
@@ -60,10 +64,15 @@ public class Internship {
     public void setOpeningDate(String openingDate) { this.openingDate = openingDate; }
     public void setClosingDate(String closingDate) { this.closingDate = closingDate; }
     public void setNumSlots(int numSlots) { this.numSlots = numSlots; }
+    public void setSlotsLeft(int slotsLeft) { this.slotsLeft = slotsLeft; }
 
 
     public void setStatus(InternshipStatus status) { this.status = status; }
     public void setVisible(boolean visible) { this.visible = visible; }
+
+    public void decrementSlot() {
+        if (slotsLeft > 0) slotsLeft--;
+    }
 
     @Override
     public String toString() {
@@ -72,7 +81,7 @@ public class Internship {
     }
 
     public String toStudentView() {
-        return String.format("[%s] %s\nDescription: %s\nPreferred Major: %s\nOpening: %s  |  Closing: %s  |  Slots: %d\n",
-                internshipId, title, description, preferredMajor, openingDate, closingDate, numSlots);
+        return String.format("[%s] %s\nDescription: %s\nPreferred Major: %s\nOpening: %s  |  Closing: %s  | Total Slots: %d | Slots Left: %d\n",
+                internshipId, title, description, preferredMajor, openingDate, closingDate, numSlots, slotsLeft);
     }
 }

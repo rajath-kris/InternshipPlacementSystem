@@ -82,7 +82,7 @@ public class InternshipManager {
         return String.format("INT%03d", maxId + 1); // e.g. INT001
     }
 
-    // --- INTERNAL HELPER (used only for seeding or system bootstrapping) ---
+    // --- INTERNAL HELPER (used only for seeding) ---
     protected void addInternship(Internship internship) {
         if (internship.getInternshipId() == null || internship.getInternshipId().isBlank()) {
             internship.setInternshipId(generateInternshipId());
@@ -214,7 +214,7 @@ public class InternshipManager {
         return visibleList;
     }
     // --- HELPER: Flexible major matching ---
-    private boolean majorsMatch(String studentMajor, String internshipMajor) {
+    public boolean majorsMatch(String studentMajor, String internshipMajor) {
         if (studentMajor == null || internshipMajor == null) return false;
 
         String s = studentMajor.trim().toLowerCase();
