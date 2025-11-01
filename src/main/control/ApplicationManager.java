@@ -86,7 +86,7 @@ public class ApplicationManager {
 
         // Rule 6 : Check slots left
 
-        if (internship.getSlotsLeft() <= 0) {
+        if (internship.hasAvailableSlots()) {
             System.out.println("❌ This internship has no remaining slots.");
             return;
         }
@@ -116,6 +116,25 @@ public class ApplicationManager {
         System.out.println("✅ Application submitted successfully!");
     }
 
+    public void approveApplication(Application a) {
+        Internship internship = internshipMgr.findInternshipById(a.getInternshipId());
+        if (internship == null) return;
+
+        if (!internship.hasAvailableSlots()) {
+            System.out.printf("⚠ Internship '%s' is full.%n", internship.getTitle());
+            return;
+        }
+
+        a.setStatus(ApplicationStatus.SUCCESSFUL);
+        internship.decrementSlot();
+        saveApplications();
+        internshipMgr.saveAllInternships();
+    }
+
+    public void rejectApplication(Application a) {
+        a.setStatus(ApplicationStatus.UNSUCCESSFUL);
+        saveApplications();
+    }
 
     // COMPANY REP REVIEWS APPLICATIONS
 
@@ -161,6 +180,28 @@ public class ApplicationManager {
         return appRepo.getApplicationsByStudent(studentId);
     }
 
+    public void displayApplicationsForStudent(Student student) {
+        List<Application> apps = getMyApplications(student.getUserId());
+
+        if (apps.isEmpty()) {
+            System.out.println("You have no applications yet.");
+            return;
+        }
+
+        System.out.println("\n--- YOUR APPLICATIONS ---");
+        for (Application a : apps) {
+            Internship i = internshipMgr.findInternshipById(a.getInternshipId());
+            String title = (i != null) ? i.getTitle() : a.getInternshipId();
+            System.out.printf("[%s] %s | Status: %s%n", a.getApplicationId(), title, a.getStatus());
+        }
+    }
+
+    public boolean hasSuccessfulOffer(Student student) {
+        return getMyApplications(student.getUserId()).stream()
+                .anyMatch(a -> a.getStatus() == ApplicationStatus.SUCCESSFUL);
+    }
+
+
 
     public void acceptOffer(Student student, String appId) {
         Application selected = appRepo.getAllApplications().stream()
@@ -201,6 +242,25 @@ public class ApplicationManager {
         System.out.println("✅ You have accepted the offer for " + selected.getInternshipId() + ".");
     }
 
+    public void displayWithdrawableApplications(Student student) {
+        List<Application> apps = getMyApplications(student.getUserId()).stream()
+                .filter(a -> a.getStatus() == ApplicationStatus.PENDING)
+                .toList();
+
+        if (apps.isEmpty()) {
+            System.out.println("You have no pending applications to withdraw.");
+            return;
+        }
+
+        System.out.println("\n--- WITHDRAWABLE APPLICATIONS ---");
+        for (Application a : apps) {
+            Internship i = internshipMgr.findInternshipById(a.getInternshipId());
+            String title = (i != null) ? i.getTitle() : a.getInternshipId();
+            System.out.printf("[%s] %s | Status: %s%n", a.getApplicationId(), title, a.getStatus());
+        }
+    }
+
+
     public void withdrawApplication(Student student, String appId) {
         Application app = appRepo.getAllApplications().stream()
                 .filter(a -> a.getApplicationId().equalsIgnoreCase(appId)
@@ -234,6 +294,23 @@ public class ApplicationManager {
         app.setStatus(ApplicationStatus.WITHDRAWAL_PENDING);
         appRepo.saveApplications();
         System.out.println("✅ Withdrawal request submitted. Awaiting staff approval.");
+    }
+
+    // --- WITHDRAWAL APPROVAL LOGIC ---
+    public List<Application> getPendingWithdrawals() {
+        return getAllApplications().stream()
+                .filter(a -> a.getStatus() == ApplicationStatus.WITHDRAWAL_PENDING)
+                .toList();
+    }
+
+    public void approveWithdrawal(Application application) {
+        application.setStatus(ApplicationStatus.WITHDRAWN);
+        saveApplications(); // ✅ persistence
+    }
+
+    public void rejectWithdrawal(Application application) {
+        application.setStatus(ApplicationStatus.PENDING);
+        saveApplications(); // ✅ persistence
     }
 
 

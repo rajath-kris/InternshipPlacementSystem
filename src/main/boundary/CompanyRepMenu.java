@@ -11,6 +11,8 @@ public class CompanyRepMenu {
     private final AppContext app;
     private final CompanyRepresentative currentRep;
     private final InputHandler input = new InputHandler();
+    private final FilterMenu filterMenu = new FilterMenu();
+    private final FilterSettings filters = new FilterSettings();
 
     public CompanyRepMenu(AppContext app, CompanyRepresentative rep) {
         this.app = app;
@@ -22,24 +24,26 @@ public class CompanyRepMenu {
         while (running) {
             System.out.println("\n=== COMPANY REP MENU ===");
             System.out.println("1. View My Internships");
-            System.out.println("2. Create New Internship");
-            System.out.println("3. Edit Internship");
-            System.out.println("4. Toggle Internship Visibility");
-            System.out.println("5. View Applications");
-            System.out.println("6. Review Applications");
-            System.out.println("7. Change Password");
-            System.out.println("8. Logout");
+            System.out.println("2. Set Filters for Internships");
+            System.out.println("3. Create New Internship");
+            System.out.println("4. Edit Internship");
+            System.out.println("5. Toggle Internship Visibility");
+            System.out.println("6. View Applications");
+            System.out.println("7. Review Applications");
+            System.out.println("8. Change Password");
+            System.out.println("9. Logout");
 
-            int choice = input.readInt("Enter choice: ", 1, 10);
+            int choice = input.readInt("Enter choice: ", 1, 9);
             switch (choice) {
-                case 1 -> app.internshipManager.displayInternshipsForRep(currentRep.getUserId());
-                case 2 -> createInternshipInput();
-                case 3 -> editInternshipInput();
-                case 4 -> toggleVisibilityInput();
-                case 5 -> viewApplications();
-                case 6 -> reviewApplications();
-                case 7 -> app.authenticator.changePassword(currentRep);
-                case 8 -> running = false;
+                case 1 -> app.internshipManager.displayInternshipsForUser(currentRep, filters);
+                case 2 -> filterMenu.open(filters, true, true, true, true, true);
+                case 3 -> createInternshipInput();
+                case 4 -> editInternshipInput();
+                case 5 -> toggleVisibilityInput();
+                case 6 -> viewApplications();
+                case 7 -> reviewApplications();
+                case 8 -> app.authenticator.changePassword(currentRep);
+                case 9 -> running = false;
             }
         }
     }
@@ -126,7 +130,7 @@ public class CompanyRepMenu {
 
     // Filter Applications by Internship ID
     private void filterByInternship() {
-        app.internshipManager.displayInternshipsForRep(currentRep.getUserId());
+        app.internshipManager.displayInternshipsForUser(currentRep, filters);
         String internshipId = input.readString("Enter Internship ID to view applications: ");
 
         List<Application> filtered = app.applicationManager.getApplicationsForInternship(internshipId);
@@ -158,16 +162,12 @@ public class CompanyRepMenu {
             Internship internship = app.internshipManager.findInternshipById(a.getInternshipId());
             if (internship == null) continue;
 
-            long filledSlots = app.applicationManager.getApplicationsForInternship(internship.getInternshipId())
-                    .stream()
-                    .filter(x -> x.getStatus() == ApplicationStatus.SUCCESSFUL
-                            || x.getStatus() == ApplicationStatus.ACCEPTED)
-                    .count();
-
-            // 🔒 Check slot availability
-            if (filledSlots >= internship.getNumSlots()) {
-                System.out.printf("⚠ Internship '%s' is full (%d/%d slots filled). Skipping.\n",
-                        internship.getTitle(), filledSlots, internship.getNumSlots());
+            //  Check slot availability
+            if (!internship.hasAvailableSlots()) {
+                System.out.printf("Internship '%s' is full (%d/%d slots filled). Skipping.%n",
+                        internship.getTitle(),
+                        internship.getNumSlots() - internship.getSlotsLeft(),
+                        internship.getNumSlots());
                 continue;
             }
 
@@ -177,21 +177,14 @@ public class CompanyRepMenu {
             System.out.println("1. APPROVE  2. REJECT  3. SKIP");
             int choice = input.readInt("Select: ", 1, 3);
 
-            ApplicationStatus status = switch (choice) {
-                case 1 -> ApplicationStatus.SUCCESSFUL;
-                case 2 -> ApplicationStatus.UNSUCCESSFUL;
-                default -> null;
-            };
-
-            if (status != null) {
-                app.applicationManager.updateApplicationStatus(a.getApplicationId(), status);
-                System.out.println("✅ Application " + a.getApplicationId() + " marked as " + status);
+            if (choice == 1) {
+                app.applicationManager.approveApplication(a);
+                System.out.println("✅ Approved " + a.getApplicationId());
+            } else if (choice == 2) {
+                app.applicationManager.rejectApplication(a);
+                System.out.println("❌ Rejected " + a.getApplicationId());
             }
         }
-
         System.out.println("✅ All decisions processed.");
     }
-
-
 }
-

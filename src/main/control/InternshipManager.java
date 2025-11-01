@@ -1,11 +1,13 @@
 package main.control;
 
 import main.data.InternshipRepository;
-import main.entity.Internship;
+import main.entity.*;
+
 import main.entity.enums.InternshipLevel;
 import main.entity.enums.InternshipStatus;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class InternshipManager {
@@ -145,10 +147,32 @@ public class InternshipManager {
             return;
         }
 
+        if (visible && i.getStatus() != InternshipStatus.APPROVED) {
+            System.out.println("❌ Only approved internships can be made visible.");
+            return;
+        }
+
+
         i.setVisible(visible);
         internshipRepo.saveInternships();
 
         System.out.println("💡 Visibility for " + i.getTitle() + " set to " + (visible ? "ON" : "OFF"));
+    }
+
+    public List<Internship> getPendingInternships() {
+        return getAllInternships().stream()
+                .filter(i -> i.getStatus() == InternshipStatus.PENDING)
+                .toList();
+    }
+
+    public void approveInternship(Internship internship) {
+        internship.setStatus(InternshipStatus.APPROVED);
+        saveAllInternships();
+    }
+
+    public void rejectInternship(Internship internship) {
+        internship.setStatus(InternshipStatus.REJECTED);
+        saveAllInternships();
     }
 
 
@@ -164,55 +188,6 @@ public class InternshipManager {
         }
     }
 
-    // --- VIEW ALL INTERNSHIPS (Staff) ---
-    public void displayAllInternships() {
-        System.out.println("\n---- ALL INTERNSHIPS ----");
-        List<Internship> internships = internshipRepo.getAllInternships();
-
-        if (internships.isEmpty()) {
-            System.out.println("No internships yet.\n");
-            return;
-        }
-
-        for (Internship i : internships) {
-            System.out.println(i);
-        }
-    }
-
-    // --- VIEW  INTERNSHIPS (Company Rep) ---
-    public void displayInternshipsForRep(String repId) {
-        System.out.println("\n---- MY INTERNSHIPS ----");
-        List<Internship> internships = internshipRepo.getAllInternships();
-        boolean found = false;
-
-        for (Internship i : internships) {
-            if (i.getRepresentativeId().equalsIgnoreCase(repId)) {
-                System.out.println(i);
-                found = true;
-            }
-        }
-
-        if (!found) {
-            System.out.println("No internships created yet.\n");
-        }
-    }
-
-    // --- FILTER FOR STUDENTS ---
-    public List<Internship> getVisibleInternshipsForStudent(String major, int year) {
-        List<Internship> internships = internshipRepo.getAllInternships();
-        List<Internship> visibleList = new ArrayList<>();
-
-        for (Internship i : internships) {
-            boolean levelAllowed = (year <= 2 && i.getLevel() == InternshipLevel.BASIC)
-                    || (year >= 3); // Y3+ can apply to any
-            if (i.isVisible() && i.getStatus() == InternshipStatus.APPROVED
-                    && majorsMatch(major, i.getPreferredMajor())
-                    && levelAllowed) {
-                visibleList.add(i);
-            }
-        }
-        return visibleList;
-    }
     // --- HELPER: Flexible major matching ---
     public boolean majorsMatch(String studentMajor, String internshipMajor) {
         if (studentMajor == null || internshipMajor == null) return false;
@@ -260,5 +235,147 @@ public class InternshipManager {
     public void saveAllInternships() {
         internshipRepo.saveInternships();
     }
+    public void displayInternshipsForUser(User user, FilterSettings filters) {
+        List<Internship> all = getFilteredInternships(filters);
+        List<Internship> visibleList = new ArrayList<>();
+
+        boolean isFiltered = filters.isActive();
+
+        if (user instanceof Student s) {
+            // Students: only approved, visible, major-compatible, and eligible by level
+            for (Internship i : all) {
+                boolean visibleOk = i.isVisible() && i.getStatus() == InternshipStatus.APPROVED;
+                boolean majorOk = majorsMatch(s.getMajor(), i.getPreferredMajor());
+                boolean levelOk = (s.getYearOfStudy() <= 2 && i.getLevel() == InternshipLevel.BASIC)
+                        || (s.getYearOfStudy() >= 3); // Y3+ can see all levels
+
+                if (visibleOk && majorOk && levelOk)
+                    visibleList.add(i);
+            }
+
+            if (visibleList.isEmpty()) {
+                System.out.println("No internships available for your criteria.");
+                return;
+            }
+
+            System.out.println("\n--- AVAILABLE INTERNSHIPS ---");
+            if (isFiltered) System.out.println("🎯 Showing filtered results — use 'Set Filters' to modify or clear.\n");
+            for (Internship i : visibleList) {
+                System.out.println(i.toStudentView());
+            }
+        } else if (user instanceof CompanyRepresentative rep) {
+            // Reps: only their own internships
+            for (Internship i : all) {
+                if (i.getRepresentativeId().equalsIgnoreCase(rep.getUserId())) {
+                    visibleList.add(i);
+                }
+            }
+
+            if (visibleList.isEmpty()) {
+                if(isFiltered) System.out.println("No internships matching your filters");
+                else System.out.println("You haven’t created any internships yet.");
+                return;
+            }
+
+            System.out.println("\n--- MY INTERNSHIPS ---");
+            if (isFiltered) System.out.println("🎯 Showing filtered results — use 'Set Filters' to modify or clear.\n");
+            visibleList.forEach(System.out::println);
+
+        } else if (user instanceof CareerCenterStaff) {
+            // Staff: can view all internships
+            if (all.isEmpty()) {
+                if(isFiltered) System.out.println("No internships matching your filters");
+                else System.out.println("No internships in the system.");
+                return;
+            }
+
+            System.out.println("\n--- ALL INTERNSHIPS ---");
+            if (isFiltered) System.out.println("🎯 Showing filtered results — use 'Set Filters' to modify or clear.\n");
+            all.forEach(System.out::println);
+        }
+    }
+
+
+    public List<Internship> getFilteredInternships(FilterSettings filters) {
+        List<Internship> result = new ArrayList<>();
+
+        for (Internship i : internshipRepo.getAllInternships()) {
+
+            // --- Filter by Status ---
+            if (filters.getStatus() != null && i.getStatus() != filters.getStatus())
+                continue;
+
+            // --- Filter by Major ---
+            if (filters.getPreferredMajor() != null
+                    && !majorsMatch(filters.getPreferredMajor(), i.getPreferredMajor()))
+                continue;
+
+            // --- Filter by Level ---
+            if (filters.getLevel() != null && i.getLevel() != filters.getLevel())
+                continue;
+
+            // --- Filter by Visibility ---
+            if (filters.getVisible() != null && i.isVisible() != filters.getVisible())
+                continue;
+
+            result.add(i);
+        }
+
+        // --- Sorting ---
+        String sortBy = filters.getSortBy() == null ? "" : filters.getSortBy();
+        switch (sortBy) {
+            case "closingDate" -> result.sort(Comparator.comparing(Internship::getClosingDate, String.CASE_INSENSITIVE_ORDER));
+            case "openingDate" -> result.sort(Comparator.comparing(Internship::getOpeningDate, String.CASE_INSENSITIVE_ORDER));
+            default -> result.sort(Comparator.comparing(i -> i.getTitle().toLowerCase())); // alphabetical default
+        }
+
+        return result;
+    }
+    public void generateReport(String statusFilter, String majorFilter, String levelFilter) {
+        System.out.println("\n=== INTERNSHIP CREATION REPORT ===");
+
+        List<Internship> internships = getAllInternships();
+
+        // Apply filters
+        List<Internship> filtered = internships.stream()
+                .filter(i -> (statusFilter == null || i.getStatus().name().equalsIgnoreCase(statusFilter)))
+                .filter(i -> (majorFilter == null || majorsMatch(i.getPreferredMajor(), majorFilter)))
+                .filter(i -> (levelFilter == null || i.getLevel().name().equalsIgnoreCase(levelFilter)))
+                .toList();
+
+        if (filtered.isEmpty()) {
+            System.out.println("No internships match the given filters.");
+            return;
+        }
+
+        System.out.printf("%-8s %-25s %-15s %-15s %-12s %-10s %-12s %-10s %-10s %-10s%n",
+                "ID", "Title", "Company", "CreatedBy", "CreatedOn",
+                "Level", "Status", "Major", "Slots", "Visible");
+        System.out.println("-----------------------------------------------------------------------------------------------");
+
+        for (Internship i : filtered) {
+            System.out.printf("%-8s %-25s %-15s %-15s %-12s %-10s %-12s %-10s %d/%d %-10s%n",
+                    i.getInternshipId(),
+                    i.getTitle(),
+                    i.getCompanyName(),
+                    i.getRepresentativeId(),          // or name if you want to map it
+                    i.getCreatedDate(),
+                    i.getLevel(),
+                    i.getStatus(),
+                    i.getPreferredMajor(),
+                    i.getSlotsLeft(), i.getNumSlots(),
+                    i.isVisible() ? "Yes" : "No");
+        }
+
+        // Summary section
+        System.out.println("\n--- SUMMARY ---");
+        long approved = filtered.stream().filter(i -> i.getStatus() == InternshipStatus.APPROVED).count();
+        long pending = filtered.stream().filter(i -> i.getStatus() == InternshipStatus.PENDING).count();
+        long rejected = filtered.stream().filter(i -> i.getStatus() == InternshipStatus.REJECTED).count();
+
+        System.out.printf("Total Internships: %d%n", filtered.size());
+        System.out.printf("Approved: %d | Pending: %d | Rejected: %d%n", approved, pending, rejected);
+    }
+
 
 }

@@ -4,10 +4,13 @@ import main.control.*;
 import main.data.*;
 import main.entity.*;
 import main.entity.enums.*;
+import main.boundary.FilterMenu;
+import main.entity.FilterSettings;
 
 import java.util.List;
 
 public class Test {
+
     public static void main(String[] args) {
 
         System.out.println("====================================");
@@ -22,7 +25,7 @@ public class Test {
         UserManager userManager = new UserManager();
         Authenticator auth = new Authenticator(userManager);
 
-        // --- Load from CSV (students + staff) ---
+        // --- Load Users (Students, Company Reps, Staff) ---
         DataLoader.loadUsers(
                 userManager,
                 "data/sample_student_list.csv",
@@ -30,56 +33,76 @@ public class Test {
                 "data/sample_staff_list.csv"
         );
 
-        // --- Seed company reps & internships ---
+        // --- Seed sample Company Reps & Internships if not present ---
         seedCompanyReps(userManager);
         seedInternships(internshipManager, internshipRepo);
 
-        // --- Debug info ---
-        System.out.println("\nLoaded Users:");
-        userManager.displayAllUsers();
+        System.out.println("\n✅ Data loading complete.\n");
 
-        System.out.println("\nLoaded Internships:");
-        internshipManager.displayAllInternships();
+        // -------------------------------
+        // TEST SCENARIOS
+        // -------------------------------
 
-        // --- Simulate student login and viewing ---
-        System.out.println("\n🎓 Testing student login and internship view");
+        // 🎓 STUDENT LOGIN & INTERNSHIP VIEW
+        System.out.println("\n🎓 Testing student login and internship view...");
         if (auth.login("U2310001A", "password")) {
             Student s = (Student) auth.getCurrentUser();
-            List<Internship> visible = internshipManager.getVisibleInternshipsForStudent(s.getMajor(), s.getYearOfStudy());
-            System.out.println("Visible internships for " + s.getMajor() + " (" + s.getYearOfStudy() + "):");
-            for (Internship i : visible) System.out.println(i);
+            FilterSettings studentFilters = new FilterSettings();
+
+            // Student views internships
+            internshipManager.displayInternshipsForUser(s, studentFilters);
+
+            // Optionally simulate applying for an internship
+            System.out.println("\n📩 Simulating internship application...");
+            internshipManager.displayInternshipsForUser(s, studentFilters);
             auth.logout();
         }
 
-        // --- Simulate company rep login and viewing ---
-        System.out.println("\n🏢 Testing company rep login and management");
+        // 🏢 COMPANY REP LOGIN & MANAGEMENT
+        System.out.println("\n🏢 Testing company rep login and internship view...");
         if (auth.login("alice@google.com", "password")) {
             CompanyRepresentative rep = (CompanyRepresentative) auth.getCurrentUser();
-            internshipManager.displayInternshipsForRep(rep.getUserId());
-            internshipManager.toggleVisibilityForRep(rep.getUserId(),"INT001", true);
-            internshipManager.displayInternshipsForRep(rep.getUserId());
+            FilterSettings repFilters = new FilterSettings();
+
+            // Rep views their internships
+            internshipManager.displayInternshipsForUser(rep, repFilters);
+
+            // Toggle visibility of an internship
+            internshipManager.toggleVisibilityForRep(rep.getUserId(), "INT001", true);
+
+            // View again
+            internshipManager.displayInternshipsForUser(rep, repFilters);
             auth.logout();
         }
 
-        // --- Simulate staff login and approval ---
-        System.out.println("\n👩‍💼 Testing staff login and approval menu");
-        if (auth.login("tan002@ntu.edu.sg", "1234")) { // replace with real staff email from CSV
+        // 👩‍💼 STAFF LOGIN & APPROVAL
+        System.out.println("\n👩‍💼 Testing staff login and internship approval flow...");
+        if (auth.login("tan002@ntu.edu.sg", "1234")) { // Replace with real staff email if needed
             CareerCenterStaff staff = (CareerCenterStaff) auth.getCurrentUser();
-            internshipManager.displayAllInternships();
+            FilterSettings staffFilters = new FilterSettings();
+
+            // Staff views all internships
+            internshipManager.displayInternshipsForUser(staff, staffFilters);
+
+            // Approve one internship
             internshipManager.updateInternshipStatus("INT003", InternshipStatus.APPROVED);
-            internshipManager.displayAllInternships();
+
+            // View again to confirm
+            internshipManager.displayInternshipsForUser(staff, staffFilters);
             auth.logout();
         }
 
-        // --- Final Save ---
+        // 💾 SAVE FINAL DATA
         System.out.println("\n💾 Saving final data...");
         DataLoader.saveAllUsers(userManager);
         internshipRepo.saveInternships();
-
-        System.out.println("\n✅ Full system test complete.");
+        System.out.println("\n✅ Full system test complete.\n");
     }
 
-    // --- Seeder methods ---
+    // ================================================================
+    // Seeder Methods
+    // ================================================================
+
     private static void seedCompanyReps(UserManager userManager) {
         boolean hasReps = userManager.getAllUsers().stream()
                 .anyMatch(u -> u instanceof CompanyRepresentative);
@@ -91,9 +114,10 @@ public class Test {
 
         System.out.println("🌱 Seeding sample company representatives...\n");
 
+        // ✅ Rep IDs now use EMAILS (to match login system)
         CompanyRepresentative rep1 = new CompanyRepresentative(
                 "Alice Tan",
-                "REP001",
+                "alice@google.com",   // <-- ID = EMAIL
                 "alice@google.com",
                 "password",
                 "Google",
@@ -104,7 +128,7 @@ public class Test {
 
         CompanyRepresentative rep2 = new CompanyRepresentative(
                 "Ben Lee",
-                "REP002",
+                "ben@microsoft.com",
                 "ben@microsoft.com",
                 "password",
                 "Microsoft",
@@ -115,7 +139,7 @@ public class Test {
 
         CompanyRepresentative rep3 = new CompanyRepresentative(
                 "Chloe Lim",
-                "REP003",
+                "chloe@openai.com",
                 "chloe@openai.com",
                 "password",
                 "OpenAI",
@@ -143,6 +167,7 @@ public class Test {
 
         System.out.println("🌱 Seeding sample internships...\n");
 
+        // ✅ Use representative EMAILS as repId (not REP001 etc.)
         Internship i1 = new Internship(
                 "INT001",
                 "Software Engineering Intern",
@@ -152,7 +177,7 @@ public class Test {
                 "2025-11-01",
                 "2025-12-31",
                 "Google",
-                "REP001",
+                "alice@google.com",
                 3
         );
         i1.setStatus(InternshipStatus.APPROVED);
@@ -167,7 +192,7 @@ public class Test {
                 "2025-10-15",
                 "2025-12-30",
                 "Microsoft",
-                "REP002",
+                "ben@microsoft.com",
                 2
         );
         i2.setStatus(InternshipStatus.APPROVED);
@@ -182,25 +207,18 @@ public class Test {
                 "2025-09-01",
                 "2025-12-15",
                 "OpenAI",
-                "REP003",
+                "chloe@openai.com",
                 1
         );
         i3.setStatus(InternshipStatus.PENDING);
         i3.setVisible(false);
 
-        internshipManager.createInternship("REP001",i1.getCompanyName(),i1.getTitle()
-        ,i1.getDescription(),i1.getLevel(),i1.getPreferredMajor(),i1.getOpeningDate()
-        ,i1.getClosingDate(),i1.getNumSlots());
-
-        internshipManager.createInternship("REP002",i2.getCompanyName(),i2.getTitle()
-                ,i2.getDescription(),i2.getLevel(),i2.getPreferredMajor(),i2.getOpeningDate()
-                ,i2.getClosingDate(),i2.getNumSlots());
-
-        internshipManager.createInternship("REP003",i3.getCompanyName(),i3.getTitle()
-                ,i3.getDescription(),i3.getLevel(),i3.getPreferredMajor(),i3.getOpeningDate()
-                ,i3.getClosingDate(),i3.getNumSlots());
-
+        // Add directly
+        internshipRepo.addInternship(i1);
+        internshipRepo.addInternship(i2);
+        internshipRepo.addInternship(i3);
         internshipRepo.saveInternships();
+
         System.out.println("✅ Internship seeding complete!\n");
     }
 }

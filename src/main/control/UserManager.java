@@ -1,8 +1,7 @@
 package main.control;
 
-import main.entity.CareerCenterStaff;
+import main.data.DataLoader;
 import main.entity.CompanyRepresentative;
-import main.entity.Student;
 import main.entity.User;
 import main.entity.enums.AccountStatus;
 
@@ -71,4 +70,24 @@ public class UserManager {
     public List<User> getAllUsers() {
         return users;
     }
+
+    // --- COMPANY REPRESENTATIVE APPROVAL LOGIC ---
+    public List<CompanyRepresentative> getPendingCompanyReps() {
+        return getAllUsers().stream()
+                .filter(u -> u instanceof CompanyRepresentative rep
+                        && rep.getAccountStatus() == AccountStatus.PENDING)
+                .map(u -> (CompanyRepresentative) u)
+                .toList();
+    }
+
+    public void approveCompanyRep(CompanyRepresentative rep) {
+        rep.setAccountStatus(AccountStatus.APPROVED);
+        DataLoader.saveCompanyReps("data/sample_company_representative_list.csv", this); // ✅ persistence
+    }
+
+    public void rejectCompanyRep(CompanyRepresentative rep) {
+        rep.setAccountStatus(AccountStatus.REJECTED);
+        DataLoader.saveCompanyReps("data/sample_company_representative_list.csv", this); // ✅ persistence
+    }
+
 }

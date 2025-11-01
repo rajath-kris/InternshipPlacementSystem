@@ -6,7 +6,6 @@ import main.entity.User;
 import main.entity.enums.AccountStatus;
 import main.util.InputHandler;
 
-import java.util.Scanner;
 
 public class Authenticator {
     private final UserManager userManager;
@@ -82,7 +81,7 @@ public class Authenticator {
     // Change password
     public void changePassword(User currentUser) {
         if (currentUser == null) {
-            System.out.println("⚠ No user is currently logged in.");
+            System.out.println("No user is currently logged in.");
             return;
         }
 

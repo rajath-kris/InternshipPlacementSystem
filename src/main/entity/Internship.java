@@ -3,6 +3,8 @@ package main.entity;
 import main.entity.enums.InternshipLevel;
 import main.entity.enums.InternshipStatus;
 
+import java.time.LocalDate;
+
 public class Internship {
     private String internshipId;
     private String title;
@@ -17,6 +19,8 @@ public class Internship {
     private int numSlots;     // total slots
     private int slotsLeft;     // available slots
     private boolean visible;
+    private String createdDate;
+
 
     public Internship(String internshipId, String title, String description,
                       InternshipLevel level, String preferredMajor, String openingDate,
@@ -38,6 +42,8 @@ public class Internship {
 
         this.status = InternshipStatus.PENDING; // default
         this.visible = false;                    // default
+        this.createdDate = LocalDate.now().toString();
+
     }
 
     //Getters & Setters
@@ -53,6 +59,7 @@ public class Internship {
     public String getRepresentativeId() { return representativeId; }
     public int getNumSlots() { return numSlots; }
     public int getSlotsLeft() { return slotsLeft; }
+    public String getCreatedDate(){return createdDate;}
     public boolean isVisible() { return visible; }
 
     //  CONTROLLED
@@ -63,7 +70,10 @@ public class Internship {
     public void setPreferredMajor(String preferredMajor) { this.preferredMajor = preferredMajor; }
     public void setOpeningDate(String openingDate) { this.openingDate = openingDate; }
     public void setClosingDate(String closingDate) { this.closingDate = closingDate; }
-    public void setNumSlots(int numSlots) { this.numSlots = numSlots; }
+    public void setNumSlots(int newTotal) {
+        this.numSlots = newTotal;
+        if (slotsLeft > newTotal) slotsLeft = newTotal; // clamp
+    }
     public void setSlotsLeft(int slotsLeft) { this.slotsLeft = slotsLeft; }
 
 
@@ -72,6 +82,10 @@ public class Internship {
 
     public void decrementSlot() {
         if (slotsLeft > 0) slotsLeft--;
+    }
+
+    public boolean hasAvailableSlots() {
+        return slotsLeft > 0;
     }
 
     @Override
